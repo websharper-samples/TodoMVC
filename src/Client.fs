@@ -51,16 +51,6 @@ module Client =
         | TodoActive -> false | TodoEditing -> false
         | TodoComplete -> true | TodoCompleteEditing -> true
 
-    // Filters a list given a predicate
-    let FilterList filter xs =
-        List.ofSeq xs
-        |> List.filter (fun x ->
-            match filter with
-            | All -> true
-            | Active -> not (isDone x)
-            | Completed -> isDone x)
-        |> Seq.ofList
-
     // Removes all completed items from the model
     let RemoveCompleted (model: ListModel<int, TodoItem>) =
         model.Iter (fun x -> if isDone x.TodoState.Value then model.Remove x)
@@ -79,7 +69,7 @@ module Client =
         |> View.Bind (fun xs ->
             Seq.fold (fun acc x ->
                 let viewSt = x.TodoState.View
-                View.Map2 (fun acc vst -> acc + toAdd vst) acc viewSt) 
+                View.Map2 (fun acc vst -> acc + toAdd vst) acc viewSt)
                     (View.Const 0) xs)
 
     // --------------------------------------------------------
@@ -90,7 +80,6 @@ module Client =
     let RenderTodo (model: ListModel<int,TodoItem>) (filterView: View<Filter>) (item: TodoItem) =
 
         // UpdateVar is a var connected to the "edit" input field
-        let updateVar = Var.Create ""
         // SubmitFn modifies the model with the new value
         let submitFn (evt: Dom.Event) st =
             let (ke: int) = evt?keyCode
@@ -101,9 +90,7 @@ module Client =
                 | _ -> TodoActive
 
             if ke = 13 || wh = 13 then
-                Var.Set item.Text updateVar.Value
                 Var.Set item.TodoState newState
-                Var.Set updateVar ""
 
         // The attributes for a given state
         let stateAttr st =
@@ -155,7 +142,7 @@ module Client =
                     Doc.Input [
                         Attr.Handler "keypress" (fun (evt: Dom.Event) -> submitFn evt st)
                         Attr.Class "edit"
-                    ] updateVar
+                    ] item.Text
                 ]
             else Doc.Empty
         ) item.TodoState.View filterView

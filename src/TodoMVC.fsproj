@@ -58,7 +58,6 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <Import Project="..\packages\WebSharper.2.5.120.55\build\WebSharper.targets" Condition="Exists('packages\WebSharper.2.5.120.55\build\WebSharper.targets')" />
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties Guid="{349c5851-65df-11da-9384-00065b846f21}">
@@ -98,7 +97,7 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <Import Project="..\packages\WebSharper.2.5.120.55\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.2.5.120.55\build\WebSharper.targets')" />
+  <Import Project="..\packages\WebSharper.2.5.122.57\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.2.5.122.57\build\WebSharper.targets')" />
   <ItemGroup>
     <Compile Include="Client.fs" />
     <Compile Include="Main.fs" />
