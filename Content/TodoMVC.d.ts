@@ -5345,9 +5345,6 @@ declare module PrettyTodo {
         var isDone : {
             (st: __ABBREV.__Client.State): boolean;
         };
-        var FilterList : {
-            (filter: __ABBREV.__Client.Filter, xs: __ABBREV.__WebSharper.seq<__ABBREV.__Client.State>): __ABBREV.__WebSharper.seq<__ABBREV.__Client.State>;
-        };
         var RemoveCompleted : {
             (model: __ABBREV.__Next.ListModel1<number, any>): void;
         };
