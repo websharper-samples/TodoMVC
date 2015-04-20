@@ -1,0 +1,44 @@
+﻿<section id="todoapp" data-chidlren-template="TodoApp">
+    <header id="header">
+        <h1>todos</h1>
+        <input id="new-todo" data-var="NewTask" data-event-keypress="Add" placeholder="What needs to be done?" autofocus="autofocus" />
+    </header>
+    <section id="main">
+        <input id="toggle-all" data-var="AllCompleted" type="checkbox" />
+        <label for="toggle-all">Mark all as complete</label>
+        <ul id="todo-list" data-hole="TodoList">
+            <li data-template="ListItem" class="${ItemState}">
+                <div class="view">
+                    <input class="toggle" type="checkbox" />
+                    <label data-event-dbclick="Edit">${Task}</label>
+                    <button class="destroy" data-event-click="Destroy"></button>
+                </div>
+                <input class="edit" value="${Title}" data-event-keypress="KeyPressed" >
+            </li>
+        </ul>
+    </section>
+    <footer id="footer">
+        <!--<span id="todo-count">
+            <strong>${Remaining}</strong>
+            <span>${ReaminingLabel}</span> left
+        </span>-->
+        <!--<ul id="filters">
+            <li>
+                <a data-bind="css: { selected: showMode() == 'all' }" href="#/all">All</a>
+            </li>
+            <li>
+                <a data-bind="css: { selected: showMode() == 'active' }" href="#/active">Active</a>
+            </li>
+            <li>
+                <a data-bind="css: { selected: showMode() == 'completed' }" href="#/completed">Completed</a>
+            </li>
+        </ul>-->
+        <!--<button id="clear-completed" data-bind="visible: completedCount, click: removeCompleted">Clear completed (<span data-bind="text: completedCount"></span>)</button>-->
+    </footer>
+</section>
+<footer id="info">
+    <!--<p>Double-click to edit a todo</p>
+    <p>Written by <a href="https://github.com/ashish01/knockoutjs-todos">Ashish Sharma</a> and <a href="http://knockmeout.net">Ryan Niemeyer</a></p>
+    <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>-->
+</footer>
+

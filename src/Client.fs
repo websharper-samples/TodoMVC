@@ -1,14 +1,20 @@
 namespace PrettyTodo
 
-open IntelliFactory.WebSharper
-open IntelliFactory.WebSharper.UI.Next
-open IntelliFactory.WebSharper.UI.Next.Html
-open IntelliFactory.WebSharper.UI.Next.Notation
+open WebSharper
+open WebSharper.JavaScript
+open WebSharper.UI.Next
+
+module H = WebSharper.UI.Next.Html
 
 [<JavaScript>]
 module Client =
 
-    let Section = Html.Elements.Section
+    type View with
+        static member Sequence views =
+            views
+            |> Seq.fold (View.Map2 (fun a b ->
+                Seq.append a <| Seq.singleton b)) (View.Const Seq.empty)
+
     let (==>) = Attr.Create
     let txt = Doc.TextNode
 
@@ -21,6 +27,18 @@ module Client =
 
     // Editing states
     type State = | TodoActive | TodoComplete | TodoEditing | TodoCompleteEditing
+
+    // Router for hash routing
+    let Pages =
+        RouteMap.Create 
+            (function
+                | All -> []
+                | Active -> ["active"]
+                | Completed -> ["completed"])
+            (function
+                | ["active"] -> Active
+                | ["completed"] -> Completed
+                | _ -> All)
 
     // Running IDs
     let mutable runningId = 0
@@ -58,7 +76,6 @@ module Client =
     // Marks all items in the model as done
     let MarkAllDone (model: ListModel<int, TodoItem>) =
         model.Iter (fun x -> Var.Set x.TodoState TodoComplete)
-        //model.Iter (fun x -> model.Add { x with TodoState = TodoComplete })
 
     // A view of the number of items in the list that aren't done
     let notDoneItems (model: ListModel<int, TodoItem>) =
@@ -126,15 +143,15 @@ module Client =
         // Actually views an item.
         View.Map2 (fun st filter ->
             if shouldShow st filter then
-                LI [stateAttr st] [
-                    Div [Attr.Class "view"] [
-                        Elements.Input [
+                H.LI [stateAttr st] [
+                    H.Div [Attr.Class "view"] [
+                        H.Input [
                             Attr.Class "toggle";
                             "type" ==> "checkbox"
                             checkedAttr st
                             Attr.Handler "click" (fun (evt: Dom.Event) -> toggleDone st)
                         ] []
-                        Elements.Label [
+                        H.Label [
                             Attr.Handler "dblclick" (fun (evt: Dom.Event) -> startEditing st)
                         ] [Doc.TextView item.Text.View]
                         Doc.Button "" [Attr.Class "destroy"] (fun () -> model.Remove item)
@@ -151,7 +168,6 @@ module Client =
     // Renders a list
     let RenderList model filter =
         ListModel.View model
-        //|> View.Map2 FilterList filter
         // ConvertSeqBy allows us to detect changes in the todo items, projecting
         // these as views to the rendering function.
         |> Doc.ConvertBy (fun x -> x.Id) (RenderTodo model filter)
@@ -161,7 +177,7 @@ module Client =
         let model = ListModel.Create (fun todo -> todo.Id) []
 
         // filterVar: variable containing the current filter criterion
-        let filterVar = Var.Create All
+        let filterVar = RouteMap.Install Pages
         // todoVar: variable containing the value of the new todo box
         let todoVar = Var.Create ""
 
@@ -176,58 +192,78 @@ module Client =
         // Rendering -- it's likely some of this could be shifted to static
         // HTML, but it's short enough to just have it all here
         Doc.Concat [
-            Section ["id" ==> "todoapp"] [
-                Elements.Header ["id" ==> "header"] [
+            H.Section ["class" ==> "todoapp"] [
+                ListModel.View model
+                |> View.Map (fun mdl ->
+                    let isEmpty = Seq.isEmpty mdl
+                    Doc.Concat [
+                        yield H.Header ["class" ==> "header"] [
 
-                    H10 [txt "todos"]
-                    Doc.Input
-                        [
-                            "id" ==> "new-todo"
-                            "placeholder" ==> "What needs to be done?"
-                            "autofocus" ==> ""
-                            // Add the handler -- in UI.Next, these are treated
-                            // as attributes
-                            Attr.Handler "keypress" submitFn
-                        ] todoVar
-                ]
+                            H.H10 [txt "todos"]
+                            Doc.Input
+                                [
+                                    "class" ==> "new-todo"
+                                    "placeholder" ==> "What needs to be done?"
+                                    "autofocus" ==> ""
+                                    // Add the handler -- in UI.Next, these are treated
+                                    // as attributes
+                                    Attr.Handler "keypress" submitFn
+                                ] todoVar
+                        ]
 
-                Section ["id" ==> "main"] [
-                    Elements.Input
-                        [
-                            "id" ==> "toggle-all"
-                            "type" ==> "checkbox"
-                            Attr.Handler "click" (fun (evt: Dom.Event) -> MarkAllDone model)
-                        ] []
-                    Elements.Label ["for" ==> "toggle-all"] [txt "Mark all as complete"]
-                    UL ["id" ==> "todo-list"] [
-                        // Renders the current model
-                        RenderList model filterVar.View
+                        yield H.Section ["class" ==> "main"] [
+                            if not isEmpty then
+                                yield H.Input
+                                    [
+                                        "class" ==> "toggle-all"
+                                        "type" ==> "checkbox"
+                                        Attr.Handler "click" (fun (evt: Dom.Event) -> MarkAllDone model)
+                                    ] []
+                            
+                                yield H.Label ["for" ==> "toggle-all"] [txt "Mark all as complete"]
+                            yield H.UL ["class" ==> "todo-list"] [
+                                // Renders the current model
+                                RenderList model filterVar.View
+                            ]
+                        ]
+
+                        if not isEmpty then
+                            yield H.Footer ["class" ==> "footer"] [
+                                H.Span ["class" ==> "todo-count"] [
+                                    // Embed the counter of items remaining
+                                    notDoneItems model
+                                    |> View.Map (fun num ->
+                                        let items = if num = 1 then "item" else "items"
+                                        Doc.TextNode <| sprintf "%d %s left"num items
+                                    ) |> Doc.EmbedView
+                                ]
+                                H.UL ["class" ==> "filters"] [
+                                    // Filter functions, which set the current filter variable
+                                    H.LI0 [Doc.Link "All" [] (fun () -> Var.Set filterVar All)]
+                                    H.LI0 [Doc.Link "Active" [] (fun () -> Var.Set filterVar Active)]
+                                    H.LI0 [Doc.Link "Completed" [] (fun () -> Var.Set filterVar Completed)]
+                                ]
+
+                                // Clears the completed items
+                                // Only rendered if there are complete items
+                                mdl
+                                |> Seq.map (fun e -> e.TodoState.View)
+                                |> Seq.map (View.Map isDone)
+                                |> View.Sequence
+                                |> View.Map (fun s ->
+                                    if s |> Seq.exists id then
+                                        Doc.Button "Clear Completed" ["class" ==> "clear-completed"]
+                                            (fun () -> RemoveCompleted model)
+                                    else  Doc.Empty
+                                )
+                                |> Doc.EmbedView
+                            ]
                     ]
-                ]
-
-                Elements.Footer ["id" ==> "footer"] [
-                    Span ["id" ==> "todo-count"] [
-                        // Embed the counter of items remaining
-                        notDoneItems model
-                        |> View.Map (fun num ->
-                            Doc.TextNode <| (string num) + " items remaining"
-                        ) |> Doc.EmbedView
-                    ]
-                    UL ["id" ==> "filters"] [
-                        // Filter functions, which set the current filter variable
-                        LI0 [Doc.Link "All" [] (fun () -> Var.Set filterVar All)]
-                        LI0 [Doc.Link "Active" [] (fun () -> Var.Set filterVar Active)]
-                        LI0 [Doc.Link "Completed" [] (fun () -> Var.Set filterVar Completed)]
-                    ]
-
-                    // Clears the completed items
-                    Doc.Button "Clear Completed" ["id" ==> "clear-completed"]
-                        (fun () -> RemoveCompleted model)
-                ]
+                )
+                |> Doc.EmbedView
             ]
-
-            Elements.Footer ["id" ==> "info"] [
-                P0 [txt "Double-click to edit a todo"]
+            H.Footer ["class" ==> "info"] [
+                H.P0 [txt "Double-click to edit a todo"]
             ]
         ]
 
