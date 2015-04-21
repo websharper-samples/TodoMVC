@@ -2,4 +2,11 @@ src/obj/
 src/bin/
 *.suo
 packages/
-src/Content
+src/Content/
+
+src/node_modules/todomvc-app-css/*
+!src/node_modules/todomvc-app-css/index.css
+
+src/node_modules/todomvc-common/*
+!src/node_modules/todomvc-common/base.css
+!src/node_modules/todomvc-common/base.js
