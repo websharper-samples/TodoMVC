@@ -1,4 +1,5 @@
-**/obj/
-**/bin/
+src/obj/
+src/bin/
 *.suo
 packages/
+src/Content

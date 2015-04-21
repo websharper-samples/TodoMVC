@@ -7510,7 +7510,7 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
 
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,Arrays,Concurrency,Array,Seq,UI,Next,Abbrev,Fresh,Collections,HashSetProxy,HashSet,JQueue,Unchecked,Slot,An,AppendList1,Anims,window,Trans,Option,View,Lazy,Array1,Attrs,DomUtility,Attr,AnimatedAttrNode,DynamicAttrNode,document,Doc,UINextPagelet,List,Var1,Docs,Var,View1,Mailbox,Operators,NodeSet,DocElemNode,DomNodes,jQuery,Easing,Easings,FlowBuilder,Flow1,T,Input,DoubleInterpolation,Key,ListModels,ListModel,Model1,Model,Strings,encodeURIComponent,decodeURIComponent,Route,Routing,Router1,Trie1,Dictionary,Snap1,Async,Enumerator,ResizeArray,ResizeArrayProxy,MapModule,FSharpMap,Html,Client,Pagelet,Attr1,Tags,ViewBuilder,Html1,Attributes,SvgAttributes;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,Arrays,Concurrency,Array,Seq,UI,Next,Abbrev,Fresh,Collections,HashSetProxy,HashSet,JQueue,Unchecked,Slot,An,AppendList1,Anims,window,Trans,Option,View,Lazy,Array1,Attrs,DomUtility,Attr,Var,List,AnimatedAttrNode,DynamicAttrNode,document,Doc,UINextPagelet,Var1,Docs,View1,Mailbox,Operators,NodeSet,DocElemNode,DomNodes,jQuery,Easing,Easings,FlowBuilder,Flow,T,Input,DoubleInterpolation,Key,ListModels,ListModel,Model1,Model,Strings,encodeURIComponent,decodeURIComponent,Route,Routing,Router,Trie1,Dictionary,Snap1,Async,Enumerator,ResizeArray,ResizeArrayProxy,MapModule,FSharpMap,Html,Client,Pagelet,Attr1,Tags,ViewBuilder,Html1,Attributes,SvgAttributes;
  Runtime.Define(Global,{
   WebSharper:{
    UI:{
@@ -8280,6 +8280,21 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
         return DomUtility.SetStyle(el,name,value);
        });
       },
+      Value:function(_var)
+      {
+       var onChange;
+       onChange=function(e)
+       {
+        return e.currentTarget.value!==_var.get_Value()?Var.Set(_var,e.currentTarget.value):null;
+       };
+       return Attr.Concat(List.ofArray([Attr.Handler("change",onChange),Attr.Handler("input",onChange),Attrs.Dynamic(_var.get_View(),function(e)
+       {
+        return function(v)
+        {
+         return v!==e.value?void(e.value=v):null;
+        };
+       })]));
+      },
       get_Empty:function()
       {
        return Attrs.EmptyAttr();
@@ -8490,7 +8505,23 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
        attrs1=Attr.Concat(attrs);
        return Doc.Elem(Doc.Clickable("button",action),attrs1,Doc.TextNode(caption));
       },
-      CheckBox:function(attrs,item,chk)
+      CheckBox:function(attrs,chk)
+      {
+       var el;
+       el=DomUtility.CreateElement("input");
+       el.addEventListener("click",function()
+       {
+        return Var.Set(chk,el.checked);
+       },false);
+       return Doc.Elem(el,Attr.Concat(Seq.toList(Seq.delay(function()
+       {
+        return Seq.append(attrs,Seq.delay(function()
+        {
+         return[Attr.DynamicPred("checked",chk.get_View(),View.Const("checked"))];
+        }));
+       }))),Doc.get_Empty());
+      },
+      CheckBoxGroup:function(attrs,item,chk)
       {
        var rvi,predicate,checkedView,arg20,checkedAttr,attrs1,el;
        rvi=View.FromVar(chk);
@@ -8623,22 +8654,10 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
       },
       InputInternal:function(attr,_var,inputTy)
       {
-       var patternInput,attrN,el,valAttr;
+       var patternInput,attrN;
        patternInput=inputTy.$==1?[Attr.Append(Attr.Create("type","password"),Attr.Concat(attr)),"input"]:inputTy.$==2?[Attr.Concat(attr),"textarea"]:[Attr.Concat(attr),"input"];
        attrN=patternInput[0];
-       el=DomUtility.CreateElement(patternInput[1]);
-       valAttr=Attr.DynamicCustom(function(el1)
-       {
-        return function(v)
-        {
-         return el1.value!==v?void(el1.value=v):null;
-        };
-       },View.FromVar(_var));
-       el.addEventListener("input",function()
-       {
-        return Var.Set(_var,el.value);
-       },false);
-       return Doc.Elem(el,Attr.Append(attrN,valAttr),Doc.get_Empty());
+       return Doc.Elem(DomUtility.CreateElement(patternInput[1]),Attr.Append(attrN,Attr.Value(_var)),Doc.get_Empty());
       },
       Link:function(caption,attrs,action)
       {
@@ -9428,7 +9447,7 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
        });
       })
      },
-     Flow1:Runtime.Class({},{
+     Flow:Runtime.Class({},{
       Bind:function(m,k)
       {
        return{
@@ -9492,6 +9511,12 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
         }
        };
       },
+      get_Do:function()
+      {
+       return FlowBuilder.New();
+      }
+     }),
+     Flow1:Runtime.Class({},{
       Static:function(doc)
       {
        return{
@@ -9504,20 +9529,16 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
          };
         }
        };
-      },
-      get_Do:function()
-      {
-       return FlowBuilder.New();
       }
      }),
      FlowBuilder:Runtime.Class({
       Bind:function(comp,func)
       {
-       return Flow1.Bind(comp,func);
+       return Flow.Bind(comp,func);
       },
       Return:function(value)
       {
-       return Flow1.Return(value);
+       return Flow.Return(value);
       },
       ReturnFrom:function(inner)
       {
@@ -12623,6 +12644,17 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
         return Seq.exists(predicate,array);
        },m.Var.get_View());
       },
+      Find:function(pred)
+      {
+       return Arrays.find(pred,this.Var.get_Value());
+      },
+      FindAsView:function(pred)
+      {
+       return View.Map(function(array)
+       {
+        return Arrays.find(pred,array);
+       },this.Var.get_View());
+      },
       FindByKey:function(key)
       {
        var m=this;
@@ -12665,6 +12697,13 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
          return null;
         }
       },
+      RemoveBy:function(f)
+      {
+       return this.Var.set_Value(Arrays.filter(function(x)
+       {
+        return!f(x);
+       },this.Var.get_Value()));
+      },
       RemoveByKey:function(key)
       {
        var m=this;
@@ -12676,6 +12715,37 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
       Set:function(lst)
       {
        return this.Var.set_Value(Arrays.ofSeq(lst));
+      },
+      TryFind:function(pred)
+      {
+       return Arrays.tryFind(pred,this.Var.get_Value());
+      },
+      TryFindAsView:function(pred)
+      {
+       return View.Map(function(array)
+       {
+        return Arrays.tryFind(pred,array);
+       },this.Var.get_View());
+      },
+      TryFindByKey:function(key)
+      {
+       var m=this;
+       return Arrays.tryFind(function(it)
+       {
+        return Unchecked.Equals(m.Key.call(null,it),key);
+       },m.Var.get_Value());
+      },
+      TryFindByKeyAsView:function(key)
+      {
+       var predicate,m=this;
+       predicate=function(it)
+       {
+        return Unchecked.Equals(m.Key.call(null,it),key);
+       };
+       return View.Map(function(array)
+       {
+        return Arrays.tryFind(predicate,array);
+       },m.Var.get_View());
       },
       UpdateBy:function(fn,key)
       {
@@ -12842,10 +12912,10 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
        return Routing.InstallMap(map);
       }
      }),
-     Router1:Runtime.Class({},{
+     Router:Runtime.Class({},{
       Dir:function(prefix,sites)
       {
-       return Router1.Prefix(prefix,Router1.Merge(sites));
+       return Router.Prefix(prefix,Router.Merge(sites));
       },
       Install:function(key,site)
       {
@@ -12862,7 +12932,9 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
         $0:_arg1.$0,
         $1:Trie1.Prefix(prefix,_arg1.$1)
        };
-      },
+      }
+     }),
+     Router1:Runtime.Class({},{
       Route:function(r,init,render)
       {
        return Routing.DefineRoute(r,init,render);
@@ -14163,15 +14235,15 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
   Attrs=Runtime.Safe(Next.Attrs);
   DomUtility=Runtime.Safe(Next.DomUtility);
   Attr=Runtime.Safe(Next.Attr);
+  Var=Runtime.Safe(Next.Var);
+  List=Runtime.Safe(Global.WebSharper.List);
   AnimatedAttrNode=Runtime.Safe(Next.AnimatedAttrNode);
   DynamicAttrNode=Runtime.Safe(Next.DynamicAttrNode);
   document=Runtime.Safe(Global.document);
   Doc=Runtime.Safe(Next.Doc);
   UINextPagelet=Runtime.Safe(Next.UINextPagelet);
-  List=Runtime.Safe(Global.WebSharper.List);
   Var1=Runtime.Safe(Next.Var1);
   Docs=Runtime.Safe(Next.Docs);
-  Var=Runtime.Safe(Next.Var);
   View1=Runtime.Safe(Next.View1);
   Mailbox=Runtime.Safe(Abbrev.Mailbox);
   Operators=Runtime.Safe(Global.WebSharper.Operators);
@@ -14182,7 +14254,7 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
   Easing=Runtime.Safe(Next.Easing);
   Easings=Runtime.Safe(Next.Easings);
   FlowBuilder=Runtime.Safe(Next.FlowBuilder);
-  Flow1=Runtime.Safe(Next.Flow1);
+  Flow=Runtime.Safe(Next.Flow);
   T=Runtime.Safe(List.T);
   Input=Runtime.Safe(Next.Input);
   DoubleInterpolation=Runtime.Safe(Next.DoubleInterpolation);
@@ -14196,7 +14268,7 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
   decodeURIComponent=Runtime.Safe(Global.decodeURIComponent);
   Route=Runtime.Safe(Next.Route);
   Routing=Runtime.Safe(Next.Routing);
-  Router1=Runtime.Safe(Next.Router1);
+  Router=Runtime.Safe(Next.Router);
   Trie1=Runtime.Safe(Next.Trie1);
   Dictionary=Runtime.Safe(Collections.Dictionary);
   Snap1=Runtime.Safe(Next.Snap1);
@@ -16399,7 +16471,7 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
 
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,PrettyTodo,Client,Var,RouteMap1,List,T,ListModel1,View,Html,Attr,ListModel,Seq,PrintfHelpers;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,PrettyTodo,Client,RouteMap1,List,T,ListModel1,Var,View,Attr,Seq,ListModel,Strings,Unchecked,Html;
  Runtime.Define(Global,{
   PrettyTodo:{
    Client:{
@@ -16407,15 +16479,6 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
     {
      return Doc.RunById("main",Client.TodoApp());
     }),
-    MarkAllDone:function(model)
-    {
-     return model.Iter(function(x)
-     {
-      return Var.Set(x.TodoState,{
-       $:1
-      });
-     });
-    },
     Pages:Runtime.Field(function()
     {
      return RouteMap1.Create(function(_arg1)
@@ -16459,20 +16522,37 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
     },
     RenderTodo:function(model,filterView,item)
     {
+     var endEditing;
+     endEditing=function(st,te)
+     {
+      var newState;
+      if(te==="")
+       {
+        return model.Remove(item);
+       }
+      else
+       {
+        newState=st.$==3?{
+         $:1
+        }:{
+         $:0
+        };
+        Var.Set(item.Text,te);
+        return Var.Set(item.TodoState,newState);
+       }
+     };
      return Doc.EmbedView(View.Map2(function(st)
      {
       return function(filter)
       {
-       var matchValue,arg20,arg10;
+       var titleEditing,matchValue,arg00,ItemState,CheckedClicked,arg001,Checked,Edit,Title,Destroy,KeyPressed,Leave,arg10;
+       titleEditing=Var.Create(item.Text.get_Value());
        matchValue=[filter,st];
        if(matchValue[0].$==1?!Client.isDone(matchValue[1]):matchValue[0].$==2?Client.isDone(matchValue[1]):true)
         {
-         arg20=function()
-         {
-          return model.Remove(item);
-         };
-         arg10=item.Text;
-         return Html.LI(List.ofArray([st.$==2?Attr.Class("editing"):st.$==1?Attr.Class("completed"):st.$==3?Attr.Concat(List.ofArray([Attr.Class("editing"),Attr.Class("completed")])):Attr.get_Empty()]),List.ofArray([Html.Div(List.ofArray([Attr.Class("view")]),List.ofArray([Html.Input(List.ofArray([Attr.Class("toggle"),Client.op_EqualsEqualsGreater("type","checkbox"),Client.isDone(st)?Attr.Create("checked",""):Attr.get_Empty(),Attr.Handler("click",function()
+         arg00=st.$==2?"editing":st.$==1?"completed":st.$==3?"editing completed":"";
+         ItemState=View.Const(arg00);
+         CheckedClicked=function()
          {
           return Var.Set(item.TodoState,st.$==2?{
            $:1
@@ -16483,27 +16563,42 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
           }:{
            $:1
           });
-         })]),Runtime.New(T,{
-          $:0
-         })),Html.Label(List.ofArray([Attr.Handler("dblclick",function()
+         };
+         arg001=st.$==2?false:st.$==1?true:st.$==3?true:false;
+         Checked=Var.Create(arg001);
+         Edit=function()
          {
           return Var.Set(item.TodoState,Client.isDone(st)?{
            $:3
           }:{
            $:2
           });
-         })]),List.ofArray([Doc.TextView(item.Text.get_View())])),Doc.Button("",List.ofArray([Attr.Class("destroy")]),arg20)])),Doc.Input(List.ofArray([Attr.Handler("keypress",function(evt)
+         };
+         Title=item.Text.get_View();
+         Destroy=function()
          {
-          var ke,wh,newState;
-          ke=evt.keyCode;
-          wh=evt.which;
-          newState=st.$==3?{
-           $:1
-          }:{
-           $:0
-          };
-          return(ke===13?true:wh===13)?Var.Set(item.TodoState,newState):null;
-         }),Attr.Class("edit")]),arg10)]));
+          return model.Remove(item);
+         };
+         KeyPressed=function(ev)
+         {
+          var initial,te;
+          initial=item.Text.get_Value();
+          te=titleEditing.get_Value();
+          Client.onEnter(ev,function()
+          {
+           return endEditing(st,te);
+          });
+          return Client.onEscape(ev,function()
+          {
+           return endEditing(st,initial);
+          });
+         };
+         Leave=function()
+         {
+          return endEditing(st,item.Text.get_Value());
+         };
+         arg10=[Attr.Dynamic("class",ItemState)];
+         return Doc.Concat([Doc.Element("li",arg10,[Doc.Element("div",[Attr.Create("class","view")],[Doc.CheckBox([Attr.Create("class","toggle"),Attr.Create("type","checkbox"),Attr.Handler("click",CheckedClicked)],Checked),Doc.Element("label",[Attr.Handler("dblclick",Edit)],[Doc.TextView(Title)]),Doc.Element("button",[Attr.Create("class","destroy"),Attr.Handler("click",Destroy)],[])]),Doc.Input([Attr.Create("class","edit"),Attr.Handler("keypress",KeyPressed),Attr.Handler("blur",Leave)],titleEditing)])]);
         }
        else
         {
@@ -16512,9 +16607,16 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
       };
      },item.TodoState.get_View(),filterView));
     },
+    ShowIfNotEmpty:function(model,doc)
+    {
+     return Doc.EmbedView(View.Map(function(mdl)
+     {
+      return Seq.isEmpty(mdl)?Doc.get_Empty():doc;
+     },ListModel1.View(model)));
+    },
     TodoApp:Runtime.Field(function()
     {
-     var arg00,arg10,model,filterVar,todoVar,submitFn,x;
+     var arg00,arg10,model,filterVar,todoVar,allDoneVar,x,mapping,arg001,mapping1,doneItems,allDone,submitFn,notDone,selected,ToggleAll,TodoList,Footer,Remaining,RemainingLabel,x2,arg201,arg202,arg203,Filters,x3,ClearCompleted,arg102;
      arg00=function(todo)
      {
       return todo.Id;
@@ -16525,116 +16627,143 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
      model=ListModel.Create(arg00,arg10);
      filterVar=RouteMap1.Install(Client.Pages());
      todoVar=Var.Create("");
+     allDoneVar=Var.Create(false);
+     x=ListModel1.View(model);
+     mapping=function(e)
+     {
+      return e.TodoState.get_View();
+     };
+     arg001=function(st)
+     {
+      return Client.isDone(st);
+     };
+     mapping1=function(arg101)
+     {
+      return View.Map(arg001,arg101);
+     };
+     doneItems=View.Bind(function(x1)
+     {
+      return Client["View.Sequence.Static"](Seq.map(mapping1,Seq.map(mapping,x1)));
+     },x);
+     allDone=View.Map(function(d)
+     {
+      var all;
+      all=Seq.forall(function(x1)
+      {
+       return x1;
+      },d);
+      Var.Set(allDoneVar,all);
+      return all;
+     },doneItems);
      submitFn=function(evt)
      {
-      var wh;
-      wh=evt.which;
-      if(evt.keyCode===13?true:wh===13)
+      return Client.onEnter(evt,function()
+      {
+       var text;
+       text=Strings.Trim(todoVar.get_Value());
+       if(text!=="")
+        {
+         model.Add(Client.mkTodo(text));
+         return Var.Set(todoVar,"");
+        }
+       else
+        {
+         return null;
+        }
+      });
+     };
+     notDone=Client.notDoneItems(model);
+     selected=function(e)
+     {
+      var arg20;
+      arg20=function(y)
+      {
+       return Unchecked.Equals(e,y);
+      };
+      return Attr.DynamicClass("selected",filterVar.get_View(),arg20);
+     };
+     ToggleAll=Client.ShowIfNotEmpty(model,Doc.EmbedView(View.Map(function()
+     {
+      return Doc.CheckBox(List.ofArray([Client.op_EqualsEqualsGreater("class","toggle-all"),Client.op_EqualsEqualsGreater("type","checkbox"),Attr.Handler("click",function()
+      {
+       return Client.ToggleAllDone(model);
+      })]),allDoneVar);
+     },allDone)));
+     TodoList=Client.RenderList(model,filterVar.get_View());
+     Remaining=View.Map(function(value)
+     {
+      return Global.String(value);
+     },notDone);
+     RemainingLabel=View.Map(function(n)
+     {
+      return n===1?"item":"items";
+     },notDone);
+     arg201=function()
+     {
+      return Var.Set(filterVar,{
+       $:0
+      });
+     };
+     arg202=function()
+     {
+      return Var.Set(filterVar,{
+       $:1
+      });
+     };
+     arg203=function()
+     {
+      return Var.Set(filterVar,{
+       $:2
+      });
+     };
+     x2=List.ofArray([Html.LI0(List.ofArray([Doc.Link("All",List.ofArray([selected({
+      $:0
+     })]),arg201)])),Html.LI0(List.ofArray([Doc.Link("Active",List.ofArray([selected({
+      $:1
+     })]),arg202)])),Html.LI0(List.ofArray([Doc.Link("Completed",List.ofArray([selected({
+      $:2
+     })]),arg203)]))]);
+     Filters=Doc.Concat(x2);
+     x3=View.Map(function(s)
+     {
+      var arg20;
+      if(Seq.exists(function(x1)
+      {
+       return x1;
+      },s))
        {
-        model.Add(Client.mkTodo(Var.Get(todoVar)));
-        return Var.Set(todoVar,"");
+        arg20=function()
+        {
+         return Client.RemoveCompleted(model);
+        };
+        return Doc.Button("Clear Completed",List.ofArray([Client.op_EqualsEqualsGreater("class","clear-completed")]),arg20);
        }
       else
        {
-        return null;
+        return Doc.get_Empty();
        }
-     };
-     x=ListModel1.View(model);
-     return Doc.Concat(List.ofArray([Html.Section(List.ofArray([Client.op_EqualsEqualsGreater("class","todoapp")]),List.ofArray([Doc.EmbedView(View.Map(function(mdl)
-     {
-      var isEmpty;
-      isEmpty=Seq.isEmpty(mdl);
-      return Doc.Concat(Seq.toList(Seq.delay(function()
-      {
-       return Seq.append([Html.Header(List.ofArray([Client.op_EqualsEqualsGreater("class","header")]),List.ofArray([Html.H10(List.ofArray([Client.txt("todos")])),Doc.Input(List.ofArray([Client.op_EqualsEqualsGreater("class","new-todo"),Client.op_EqualsEqualsGreater("placeholder","What needs to be done?"),Client.op_EqualsEqualsGreater("autofocus",""),Attr.Handler("keypress",submitFn)]),todoVar)]))],Seq.delay(function()
-       {
-        return Seq.append([Html.Section(List.ofArray([Client.op_EqualsEqualsGreater("class","main")]),Seq.toList(Seq.delay(function()
-        {
-         return Seq.append(!isEmpty?Seq.append([Html.Input(List.ofArray([Client.op_EqualsEqualsGreater("class","toggle-all"),Client.op_EqualsEqualsGreater("type","checkbox"),Attr.Handler("click",function()
-         {
-          return Client.MarkAllDone(model);
-         })]),Runtime.New(T,{
-          $:0
-         }))],Seq.delay(function()
-         {
-          return[Html.Label(List.ofArray([Client.op_EqualsEqualsGreater("for","toggle-all")]),List.ofArray([Client.txt("Mark all as complete")]))];
-         })):Seq.empty(),Seq.delay(function()
-         {
-          return[Html.UL(List.ofArray([Client.op_EqualsEqualsGreater("class","todo-list")]),List.ofArray([Client.RenderList(model,filterVar.get_View())]))];
-         }));
-        })))],Seq.delay(function()
-        {
-         var arg20,arg201,arg202,arg001;
-         if(!isEmpty)
-          {
-           arg20=function()
-           {
-            return Var.Set(filterVar,{
-             $:0
-            });
-           };
-           arg201=function()
-           {
-            return Var.Set(filterVar,{
-             $:1
-            });
-           };
-           arg202=function()
-           {
-            return Var.Set(filterVar,{
-             $:2
-            });
-           };
-           arg001=function(st)
-           {
-            return Client.isDone(st);
-           };
-           return[Html.Footer(List.ofArray([Client.op_EqualsEqualsGreater("class","footer")]),List.ofArray([Html.Span(List.ofArray([Client.op_EqualsEqualsGreater("class","todo-count")]),List.ofArray([Doc.EmbedView(View.Map(function(num)
-           {
-            var _;
-            _=num===1?"item":"items";
-            return Doc.TextNode(Global.String(num)+" "+PrintfHelpers.toSafe(_)+" left");
-           },Client.notDoneItems(model)))])),Html.UL(List.ofArray([Client.op_EqualsEqualsGreater("class","filters")]),List.ofArray([Html.LI0(List.ofArray([Doc.Link("All",Runtime.New(T,{
-            $:0
-           }),arg20)])),Html.LI0(List.ofArray([Doc.Link("Active",Runtime.New(T,{
-            $:0
-           }),arg201)])),Html.LI0(List.ofArray([Doc.Link("Completed",Runtime.New(T,{
-            $:0
-           }),arg202)]))])),Doc.EmbedView(View.Map(function(s)
-           {
-            var arg203;
-            if(Seq.exists(function(x1)
-            {
-             return x1;
-            },s))
-             {
-              arg203=function()
-              {
-               return Client.RemoveCompleted(model);
-              };
-              return Doc.Button("Clear Completed",List.ofArray([Client.op_EqualsEqualsGreater("class","clear-completed")]),arg203);
-             }
-            else
-             {
-              return Doc.get_Empty();
-             }
-           },Client["View.Sequence.Static"](Seq.map(function(arg101)
-           {
-            return View.Map(arg001,arg101);
-           },Seq.map(function(e)
-           {
-            return e.TodoState.get_View();
-           },mdl)))))]))];
-          }
-         else
-          {
-           return Seq.empty();
-          }
-        }));
-       }));
-      })));
-     },x))])),Html.Footer(List.ofArray([Client.op_EqualsEqualsGreater("class","info")]),List.ofArray([Html.P0(List.ofArray([Client.txt("Double-click to edit a todo")]))]))]));
+     },doneItems);
+     ClearCompleted=Doc.EmbedView(x3);
+     Footer=Client.ShowIfNotEmpty(model,Doc.Concat([Doc.Element("footer",[Attr.Create("class","footer")],[Doc.Element("span",[Attr.Create("class","todo-count")],[Doc.Element("strong",[],[Doc.TextView(Remaining)]),Doc.Element("span",[],[Doc.TextNode(" "),Doc.TextView(RemainingLabel)]),Doc.TextNode(" left\n            ")]),Doc.Element("ul",[Attr.Create("class","filters")],[Filters]),Doc.Element("span",[],[ClearCompleted])])]));
+     arg102=[Attr.Create("class","todoapp"),Attr.Create("data-chidlren-template","TodoApp")];
+     return Doc.Concat([Doc.Element("section",arg102,[Doc.Element("header",[Attr.Create("class","header")],[Doc.Element("h1",[],[Doc.TextNode("todos")]),Doc.Input([Attr.Create("class","new-todo"),Attr.Handler("keyup",submitFn),Attr.Create("placeholder","What needs to be done?"),Attr.Create("autofocus","")],todoVar)]),Doc.Element("section",[Attr.Create("class","main")],[Doc.Element("span",[],[ToggleAll]),Doc.Element("label",[Attr.Create("for","toggle-all")],[Doc.TextNode("Mark all as complete")]),Doc.Element("ul",[Attr.Create("class","todo-list")],[TodoList])]),Doc.Element("div",[],[Footer])]),Doc.Element("footer",[Attr.Create("id","info")],[])]);
     }),
+    ToggleAllDone:function(model)
+    {
+     var newState;
+     newState=model.TryFind(function(e)
+     {
+      return!Client.isDone(e.TodoState.get_Value());
+     }).$==1?{
+      $:1
+     }:{
+      $:0
+     };
+     return model.Iter(function(x)
+     {
+      return Var.Set(x.TodoState,newState);
+     });
+    },
     "View.Sequence.Static":function(views)
     {
      var arg00;
@@ -16652,6 +16781,13 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
        return View.Map2(arg00,arg10,arg20);
       };
      },View.Const(Seq.empty()),views);
+    },
+    allDone:function(model)
+    {
+     return Seq.forall(function(el)
+     {
+      return Client.isDone(el.TodoState.get_Value());
+     },model);
     },
     fresh:function()
     {
@@ -16697,6 +16833,18 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
       },View.Const(0),xs);
      },ListModel1.View(model));
     },
+    onEnter:function(evt,fn)
+    {
+     var wh;
+     wh=evt.which;
+     return(evt.keyCode===13?true:wh===13)?fn(null):null;
+    },
+    onEscape:function(evt,fn)
+    {
+     var wh;
+     wh=evt.which;
+     return(evt.keyCode===27?true:wh===27)?fn(null):null;
+    },
     op_EqualsEqualsGreater:function(arg00,arg10)
     {
      return Attr.Create(arg00,arg10);
@@ -16719,17 +16867,18 @@ var JSON;JSON||(JSON={}),function(){"use strict";function i(n){return n<10?"0"+n
   Doc=Runtime.Safe(Next.Doc);
   PrettyTodo=Runtime.Safe(Global.PrettyTodo);
   Client=Runtime.Safe(PrettyTodo.Client);
-  Var=Runtime.Safe(Next.Var);
   RouteMap1=Runtime.Safe(Next.RouteMap1);
   List=Runtime.Safe(Global.WebSharper.List);
   T=Runtime.Safe(List.T);
   ListModel1=Runtime.Safe(Next.ListModel1);
+  Var=Runtime.Safe(Next.Var);
   View=Runtime.Safe(Next.View);
-  Html=Runtime.Safe(Next.Html);
   Attr=Runtime.Safe(Next.Attr);
-  ListModel=Runtime.Safe(Next.ListModel);
   Seq=Runtime.Safe(Global.WebSharper.Seq);
-  return PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
+  ListModel=Runtime.Safe(Next.ListModel);
+  Strings=Runtime.Safe(Global.WebSharper.Strings);
+  Unchecked=Runtime.Safe(Global.WebSharper.Unchecked);
+  return Html=Runtime.Safe(Next.Html);
  });
  Runtime.OnLoad(function()
  {

@@ -166,11 +166,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.UI.Next">
-      <HintPath>..\packages\WebSharper.UI.Next.3.0.42.112\lib\net40\WebSharper.UI.Next.dll</HintPath>
+      <HintPath>..\packages\WebSharper.UI.Next.3.0.48.118\lib\net40\WebSharper.UI.Next.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.UI.Next.Templating">
-      <HintPath>..\packages\WebSharper.UI.Next.3.0.42.112\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
+      <HintPath>..\packages\WebSharper.UI.Next.3.0.48.118\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Web">

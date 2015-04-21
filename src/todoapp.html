@@ -1,40 +1,32 @@
-﻿<section id="todoapp" data-chidlren-template="TodoApp">
-    <header id="header">
+﻿<section class="todoapp" data-chidlren-template="TodoApp">
+    <header class="header">
         <h1>todos</h1>
-        <input id="new-todo" data-var="NewTask" data-event-keypress="Add" placeholder="What needs to be done?" autofocus="autofocus" />
+        <input class="new-todo" data-var="NewTask" data-event-keyup="Add" placeholder="What needs to be done?" autofocus="" />
     </header>
-    <section id="main">
-        <input id="toggle-all" data-var="AllCompleted" type="checkbox" />
+    <section class="main">
+        <span data-hole="ToggleAll"></span>
         <label for="toggle-all">Mark all as complete</label>
-        <ul id="todo-list" data-hole="TodoList">
+        <ul class="todo-list" data-hole="TodoList">
             <li data-template="ListItem" class="${ItemState}">
                 <div class="view">
-                    <input class="toggle" type="checkbox" />
-                    <label data-event-dbclick="Edit">${Task}</label>
+                    <input class="toggle" data-var="Checked" type="checkbox" data-event-click="CheckedClicked"/>
+                    <label data-event-dblclick="Edit">${Title}</label>
                     <button class="destroy" data-event-click="Destroy"></button>
                 </div>
-                <input class="edit" value="${Title}" data-event-keypress="KeyPressed" >
+                <input class="edit" data-var="TitleEditing" data-event-keypress="KeyPressed" data-event-blur="Leave" />
             </li>
         </ul>
     </section>
-    <footer id="footer">
-        <!--<span id="todo-count">
-            <strong>${Remaining}</strong>
-            <span>${ReaminingLabel}</span> left
-        </span>-->
-        <!--<ul id="filters">
-            <li>
-                <a data-bind="css: { selected: showMode() == 'all' }" href="#/all">All</a>
-            </li>
-            <li>
-                <a data-bind="css: { selected: showMode() == 'active' }" href="#/active">Active</a>
-            </li>
-            <li>
-                <a data-bind="css: { selected: showMode() == 'completed' }" href="#/completed">Completed</a>
-            </li>
-        </ul>-->
-        <!--<button id="clear-completed" data-bind="visible: completedCount, click: removeCompleted">Clear completed (<span data-bind="text: completedCount"></span>)</button>-->
-    </footer>
+    <div data-hole="Footer">
+        <footer class="footer" data-template="FooterTemplate">
+            <span class="todo-count">
+                <strong>${Remaining}</strong>
+                <span> ${RemainingLabel}</span> left
+            </span>
+            <ul class="filters" data-hole="Filters"></ul>
+            <span data-hole="ClearCompleted"></span>
+        </footer>
+    </div>
 </section>
 <footer id="info">
     <!--<p>Double-click to edit a todo</p>
