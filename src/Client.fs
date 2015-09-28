@@ -3,8 +3,8 @@ namespace PrettyTodo
 open WebSharper
 open WebSharper.JavaScript
 open WebSharper.UI.Next
-
-module H = WebSharper.UI.Next.Html
+open WebSharper.UI.Next.Html
+open WebSharper.UI.Next.Client
 
 [<JavaScript>]
 module Client =
@@ -186,17 +186,25 @@ module Client =
         // Actually views an item.
         View.Map2 (fun st filter ->
             let titleEditing = Var.Create item.Text.Value
+            let inp =
+                Doc.Input [
+                    attr.``class`` "edit"
+                    on.keyPress (fun el ev ->
+                        submitFn ev st item.Text.Value titleEditing.Value)
+                    on.blur (fun _ _ ->
+                        endEditing st item.Text.Value)
+                    on.afterRender focus
+                ] titleEditing
+                
             if shouldShow st filter then
                 TodoAppTemplate.ListItem.Doc(
-                    ItemState = (View.Const <| stateAttr st),
+                    ItemState = stateAttr st,
                     Title = item.Text.View,
-                    TitleEditing = titleEditing,
-                    Destroy = (fun ev -> model.Remove item),
-                    Edit = (fun ev -> startEditing st),
-                    KeyPressed = (fun ev -> submitFn ev st item.Text.Value titleEditing.Value),
-                    CheckedClicked = (fun ev -> toggleDone st),
+                    Destroy = (fun _ _ -> model.Remove item),
+                    Edit = (fun ev el -> startEditing st),
+                    CheckedClicked = (fun _ _ -> toggleDone st),
                     Checked = (Var.Create <| isChecked st),
-                    Leave = (fun ev -> endEditing st item.Text.Value)
+                    TitleEditing = [inp]
                 )
             else Doc.Empty
         ) item.TodoState.View filterView
@@ -230,9 +238,8 @@ module Client =
                 Var.Set allDoneVar all
                 all)
 
-
         // Submission function, adds the new todo item to the model
-        let submitFn (evt: Dom.Event) =
+        let submitFn (_el: Dom.Element) (evt: Dom.Event) =
             onEnter evt <| fun () ->
                 let text = todoVar.Value.Trim ()
                 if text <> "" then
@@ -244,40 +251,43 @@ module Client =
 
         TodoAppTemplate.Doc(
             NewTask = todoVar,
-            TodoList = RenderList model filterVar.View,
+            TodoList = [RenderList model filterVar.View],
             Add = submitFn,
             ToggleAll = 
-                ShowIfNotEmpty model
+                [ ShowIfNotEmpty model
                     (allDone
                      |> View.Map (fun ad ->
                         Doc.CheckBox [
                             "class" ==> "toggle-all"
                             "type" ==> "checkbox"
-                            Attr.Handler "click" (fun evt -> ToggleAllDone model)
+                            Attr.Handler "click" (fun el evt -> ToggleAllDone model)
                         ] allDoneVar)
-                     |> Doc.EmbedView),
+                     |> Doc.EmbedView) 
+                ],
             Footer = 
-                ShowIfNotEmpty model
-                    (
-                        TodoAppTemplate.FooterTemplate.Doc(
-                            Remaining = (notDone |> View.Map string),
-                            RemainingLabel = (notDone |> View.Map (fun n -> if n = 1 then "item" else "items")),
-                            Filters =
-                                ([
-                                    H.LI0 [Doc.Link "All" [ selected All ] (fun () -> Var.Set filterVar All)]
-                                    H.LI0 [Doc.Link "Active" [ selected Active ] (fun () -> Var.Set filterVar Active)]
-                                    H.LI0 [Doc.Link "Completed" [ selected Completed ] (fun () -> Var.Set filterVar Completed)] 
-                                    ] |> Doc.Concat),
-                            ClearCompleted =
-                                (doneItems
-                                 |> View.Map (fun s ->
-                                        if s |> Seq.exists id then
-                                            Doc.Button "Clear Completed" ["class" ==> "clear-completed"]
-                                                (fun () -> RemoveCompleted model)
-                                        else Doc.Empty)
-                                 |> Doc.EmbedView)
+                [ ShowIfNotEmpty model
+                    (TodoAppTemplate.FooterTemplate.Doc(
+                        Remaining = (notDone |> View.Map string),
+                        RemainingLabel = (notDone |> View.Map (fun n -> if n = 1 then "item" else "items")),
+                        Filters =
+                            [ Doc.Concat [
+                                li [Doc.Link "All" [ selected All ] (fun () -> Var.Set filterVar All)]
+                                li [Doc.Link "Active" [ selected Active ] (fun () -> Var.Set filterVar Active)]
+                                li [Doc.Link "Completed" [ selected Completed ] (fun () -> Var.Set filterVar Completed)] 
+                              ] 
+                            ],
+                        ClearCompleted =
+                            [ doneItems
+                                |> View.Map (fun s ->
+                                    if s |> Seq.exists id then
+                                        Doc.Button "Clear Completed" ["class" ==> "clear-completed"]
+                                            (fun () -> RemoveCompleted model) :> Doc
+                                    else Doc.Empty)
+                                |> Doc.EmbedView
+                            ]
                         )
-                    )
+                    ) 
+                ]
         )
 
     let Main =
