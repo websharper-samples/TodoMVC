@@ -4,27 +4,27 @@
         <input class="new-todo" data-var="NewTask" data-event-keyup="Add" placeholder="What needs to be done?" autofocus="" />
     </header>
     <section class="main">
-        <span data-hole="ToggleAll"></span>
+        <span data-replace="ToggleAll"></span>
         <label for="toggle-all">Mark all as complete</label>
         <ul class="todo-list" data-hole="TodoList">
             <li data-template="ListItem" class="${ItemState}">
                 <div class="view">
                     <input class="toggle" data-var="Checked" type="checkbox" data-event-click="CheckedClicked"/>
-                    <label data-event-dblclick="Edit">${Title}</label>
+                    <label data-event-dblclick="Edit">$!{Title}</label>
                     <button class="destroy" data-event-click="Destroy"></button>
                 </div>
-                <input class="edit" data-var="TitleEditing" data-event-keypress="KeyPressed" data-event-blur="Leave" />
+                <div data-replace="TitleEditing"></div>
             </li>
         </ul>
     </section>
-    <div data-hole="Footer">
+    <div data-replace="Footer">
         <footer class="footer" data-template="FooterTemplate">
             <span class="todo-count">
-                <strong>${Remaining}</strong>
-                <span> ${RemainingLabel}</span> left
+                <strong>$!{Remaining}</strong>
+                $!{RemainingLabel} left
             </span>
             <ul class="filters" data-hole="Filters"></ul>
-            <span data-hole="ClearCompleted"></span>
+            <span data-replace="ClearCompleted"></span>
         </footer>
     </div>
 </section>
