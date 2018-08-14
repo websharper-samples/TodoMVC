@@ -9,7 +9,7 @@
         <ul class="todo-list" ws-hole="TodoList">
             <li ws-template="ListItem" class="${ItemState}">
                 <div class="view">
-                    <input class="toggle" ws-var="Checked" type="checkbox" ws-onclick="CheckedClicked"/>
+                    <input class="toggle" ws-var="Checked" type="checkbox"/>
                     <label ws-ondblclick="Edit">${Title}</label>
                     <button class="destroy" ws-onclick="Destroy"></button>
                 </div>

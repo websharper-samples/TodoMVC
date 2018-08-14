@@ -29,9 +29,6 @@ module Client =
     // Filter types
     type Filter = | All | Active | Completed
 
-    // Editing states
-    type State = | TodoActive | TodoComplete | TodoEditing | TodoCompleteEditing
-
     // RouteMap for hash routing
     let Pages =
         RouteMap.Create 
@@ -55,53 +52,43 @@ module Client =
     type TodoItem =
         {
             Id : int
-            Text : Var<string>
-            TodoState : Var<State>
+            Text : string
+            IsDone : bool
+            IsEditing : bool
         }
 
     // Todo item constructor
     let mkTodo text =
         {
             Id = fresh ()
-            Text = Var.Create text
-            TodoState = Var.Create TodoActive
+            Text = text
+            IsDone = false
+            IsEditing = false
         }
-
-    // Returns true if the item is done
-    let isDone st =
-        match st with
-        | TodoActive -> false | TodoEditing -> false
-        | TodoComplete -> true | TodoCompleteEditing -> true
-
-    // Checks if every item in the model is marked done
-    let allDone model =
-        model
-        |> Seq.forall (fun el -> isDone el.TodoState.Value)
 
     // Removes all completed items from the model
     let RemoveCompleted (model: ListModel<int, TodoItem>) =
-        model.Iter (fun x -> if isDone x.TodoState.Value then model.Remove x)
+        model.RemoveBy (fun x -> x.IsDone)
 
     // Marks all items in the model as done or if every item is done then marks them active
     let ToggleAllDone (model: ListModel<int, TodoItem>) =
         let notDone = 
-            model.TryFind (fun e -> not <| isDone e.TodoState.Value)
+            model.TryFind (fun e -> not e.IsDone)
             |> Option.isSome
-
-        let newState = if notDone then TodoComplete else TodoActive
-        model.Iter (fun x -> Var.Set x.TodoState newState)
+        model.UpdateAll (fun x -> Some { x with IsDone = notDone })
 
     // A view of the number of items in the list that aren't done
-    let notDoneItems (model: ListModel<int, TodoItem>) =
-        let toAdd st =
-            if isDone st then 0 else 1
-
+    let notDoneItemsCount (model: ListModel<int, TodoItem>) =
         ListModel.View model
-        |> View.Bind (fun xs ->
-            Seq.fold (fun acc x ->
-                let viewSt = x.TodoState.View
-                View.Map2 (fun acc vst -> acc + toAdd vst) acc viewSt)
-                    (View.Const 0) xs)
+        |> View.Map (fun xs ->
+            xs |> Seq.sumBy (fun x ->
+                if x.IsDone then 0 else 1))
+
+    // A view of whether any items are done
+    let hasAnyDoneItems (model: ListModel<int, TodoItem>) =
+        ListModel.View model
+        |> View.Map (Seq.exists (fun x -> x.IsDone))
+
 
     // --------------------------------------------------------
     // View
@@ -118,92 +105,82 @@ module Client =
         |> Doc.EmbedView
 
     // Renders a to-do item.
-    let RenderTodo (model: ListModel<int,TodoItem>) (filterView: View<Filter>) (item: TodoItem) =
+    let RenderTodo (model: ListModel<int,TodoItem>) (filterView: View<Filter>) (itemKey: int) (item: Var<TodoItem>) =
 
-        let endEditing st te =
-            if te = "" then model.Remove item
+        let endEditing te =
+            if te = "" then
+                model.RemoveByKey itemKey
             else
-                let newState =
-                    match st with
-                    | TodoCompleteEditing -> TodoComplete
-                    | _ -> TodoActive
-            
-                Var.Set item.Text te
-                Var.Set item.TodoState newState
+                item.Update (fun item ->
+                    { item with Text = te; IsEditing = false })
 
         // UpdateVar is a var connected to the "edit" input field
         // SubmitFn modifies the model with the new value
-        let submitFn (evt: Dom.KeyboardEvent) st initial te =
+        let submitFn (evt: Dom.KeyboardEvent) initial te =
             onEnter evt <| fun () ->
-                endEditing st te
+                endEditing te
             onEscape evt <| fun () ->
-                endEditing st initial
+                endEditing initial
 
         // The attributes for a given state
         let stateAttr st =
-            match st with
-            | TodoActive -> ""
-            | TodoEditing -> "editing"
-            | TodoComplete -> "completed"
-            | TodoCompleteEditing -> "editing completed"
+            String.concat " " [
+                if st.IsEditing then yield "editing"
+                if st.IsDone then yield "completed"
+            ]
 
         // Toggles whether an item is done
-        let toggleDone st =
-            let newState =
-                match st with
-                | TodoActive -> TodoComplete | TodoEditing -> TodoComplete
-                | TodoComplete -> TodoActive | TodoCompleteEditing -> TodoActive
-            Var.Set item.TodoState newState
+        let toggleDone() =
+            item.Update(fun x -> { x with IsDone = not x.IsDone })
 
-        let isChecked st =
-            match st with
-            | TodoActive | TodoEditing -> false
-            | TodoComplete | TodoCompleteEditing -> true
+        let titleEditing = Var.Create ""
 
         // Places an item into the "editing" state
-        let startEditing st =
-            let newState =
-                if isDone st then TodoCompleteEditing else TodoEditing
-            Var.Set item.TodoState newState
+        let startEditing() =
+            item.Update(fun x ->
+                Var.Set titleEditing x.Text
+                { x with IsEditing = true })
 
-        let shouldShow st filter =
-            match (filter, st) with
-            | (All, _) -> true
-            | (Active, state) -> not (isDone state)
-            | (Completed, state) -> isDone state
+        let shouldShow item filter =
+            match filter with
+            | All -> true
+            | Active -> not item.IsDone
+            | Completed -> item.IsDone
+
+        let inp =
+            Doc.Input [
+                attr.``class`` "edit"
+                on.keyDownView item.View (fun el ev item ->
+                    submitFn ev item.Text titleEditing.Value)
+                on.blurView item.View (fun _ _ item ->
+                    endEditing item.Text)
+                on.afterRender focus
+            ] titleEditing
+
+        let itemDisplay =
+            TodoAppTemplate.ListItem()
+                .ItemState(View.Map stateAttr item.View)
+                .Title(item.View |> View.Map (fun item -> item.Text))
+                .Destroy(fun _ -> model.RemoveByKey itemKey)
+                .Edit(fun _ -> startEditing())
+                .Checked(Var.Lens item (fun item -> item.IsDone) (fun item x -> { item with IsDone = x }))
+                .TitleEditing(inp)
+                .Doc()
 
         // Actually views an item.
-        View.Map2 (fun st filter ->
-            let titleEditing = Var.Create item.Text.Value
-            let inp =
-                Doc.Input [
-                    attr.``class`` "edit"
-                    on.keyDown (fun el ev ->
-                        submitFn ev st item.Text.Value titleEditing.Value)
-                    on.blur (fun _ _ ->
-                        endEditing st item.Text.Value)
-                    on.afterRender focus
-                ] titleEditing
-                
-            if shouldShow st filter then
-                TodoAppTemplate.ListItem()
-                    .ItemState(stateAttr st)
-                    .Title(item.Text.View)
-                    .Destroy(fun _ -> model.Remove item)
-                    .Edit(fun _ -> startEditing st)
-                    .CheckedClicked(fun _ -> toggleDone st)
-                    .Checked(Var.Create <| isChecked st)
-                    .TitleEditing(inp)
-                    .Doc()
-            else Doc.Empty
-        ) item.TodoState.View filterView
+        View.Map2 (fun item filter ->
+            if shouldShow item filter then
+                itemDisplay
+            else
+                Doc.Empty
+        ) item.View filterView
         |> Doc.EmbedView
 
     // Renders a list
     let RenderList (model: ListModel<int, TodoItem>) filter =
-        // Doc.BindListModel allows us to detect changes in the todo items, projecting
+        // Doc.BindListModelLens allows us to detect changes in the todo items, projecting
         // these as views to the rendering function.
-        model |> Doc.BindListModel (RenderTodo model filter)
+        model |> Doc.BindListModelLens (RenderTodo model filter)
 
     let TodoApp =
         let model = ListModel.Create (fun todo -> todo.Id) []
@@ -214,17 +191,9 @@ module Client =
         let todoVar = Var.Create ""
         let allDoneVar = Var.Create false
 
-        let doneItems = 
-            ListModel.View model 
-            |> View.Bind (Seq.map (fun e -> e.TodoState.View)
-                            >> Seq.map (View.Map isDone)
-                            >> View.Sequence)
-        let allDone = 
-            doneItems 
-            |> View.Map (fun d ->
-                let all = Seq.forall id d
-                Var.Set allDoneVar all
-                all)
+        let notDone = notDoneItemsCount model
+        let allDone = notDone |> View.Map (fun c -> c = 0)
+        let hasDone = hasAnyDoneItems model
 
         // Submission function, adds the new todo item to the model
         let submitFn (evt: Dom.KeyboardEvent) =
@@ -234,7 +203,6 @@ module Client =
                     model.Add <| mkTodo text
                     Var.Set todoVar ""
 
-        let notDone = notDoneItems model
         let selected e = Attr.DynamicClass "selected" filterVar.View ((=)e)
 
         TodoAppTemplate()
@@ -264,9 +232,9 @@ module Client =
                                 li [] [Doc.Link "Completed" [ selected Completed ] (fun () -> Var.Set filterVar Completed)] 
                             ])
                         .ClearCompleted(
-                            doneItems
+                            hasDone
                                 |> View.Map (fun s ->
-                                    if s |> Seq.exists id then
+                                    if s then
                                         Doc.Button "Clear Completed" ["class" ==> "clear-completed"]
                                             (fun () -> RemoveCompleted model)
                                     else Doc.Empty)
