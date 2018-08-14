@@ -1,30 +1,30 @@
-﻿<section class="todoapp" data-chidlren-template="TodoApp">
+﻿<section class="todoapp" ws-chidlren-template="TodoApp">
     <header class="header">
         <h1>todos</h1>
-        <input class="new-todo" data-var="NewTask" data-event-keyup="Add" placeholder="What needs to be done?" autofocus="" />
+        <input class="new-todo" ws-var="NewTask" ws-onkeyup="Add" placeholder="What needs to be done?" autofocus="" />
     </header>
     <section class="main">
-        <span data-replace="ToggleAll"></span>
+        <span ws-replace="ToggleAll"></span>
         <label for="toggle-all">Mark all as complete</label>
-        <ul class="todo-list" data-hole="TodoList">
-            <li data-template="ListItem" class="${ItemState}">
+        <ul class="todo-list" ws-hole="TodoList">
+            <li ws-template="ListItem" class="${ItemState}">
                 <div class="view">
-                    <input class="toggle" data-var="Checked" type="checkbox" data-event-click="CheckedClicked"/>
-                    <label data-event-dblclick="Edit">$!{Title}</label>
-                    <button class="destroy" data-event-click="Destroy"></button>
+                    <input class="toggle" ws-var="Checked" type="checkbox" ws-onclick="CheckedClicked"/>
+                    <label ws-ondblclick="Edit">${Title}</label>
+                    <button class="destroy" ws-onclick="Destroy"></button>
                 </div>
-                <div data-replace="TitleEditing"></div>
+                <div ws-replace="TitleEditing"></div>
             </li>
         </ul>
     </section>
-    <div data-replace="Footer">
-        <footer class="footer" data-template="FooterTemplate">
+    <div ws-replace="Footer">
+        <footer class="footer" ws-template="FooterTemplate">
             <span class="todo-count">
-                <strong>$!{Remaining}</strong>
-                $!{RemainingLabel} left
+                <strong>${Remaining}</strong>
+                ${RemainingLabel} left
             </span>
-            <ul class="filters" data-hole="Filters"></ul>
-            <span data-replace="ClearCompleted"></span>
+            <ul class="filters" ws-hole="Filters"></ul>
+            <span ws-replace="ClearCompleted"></span>
         </footer>
     </div>
 </section>

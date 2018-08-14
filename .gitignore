@@ -3,6 +3,7 @@ src/bin/
 *.suo
 packages/
 src/Content/
+.vs/
 
 src/node_modules/todomvc-app-css/*
 !src/node_modules/todomvc-app-css/index.css
