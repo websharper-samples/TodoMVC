@@ -1,4 +1,4 @@
-# WebSharper UI.Next TodoMVC Implementation [![Build status](https://ci.appveyor.com/api/projects/status/b4nx4nvahm7r4guo?svg=true)](https://ci.appveyor.com/project/Jand42/samples-todomvc)
+# WebSharper UI.Next TodoMVC Implementation [![Build status](https://ci.appveyor.com/api/projects/status/ynxnd31tj4iesm9o?svg=true)](https://ci.appveyor.com/project/IntelliFactory/samples-todomvc)
 
 An implementation of [TodoMVC](https://www.todomvc.com/) using [WebSharper UI.Next](https://intellifactory.github.io/websharper.ui.next).
 
