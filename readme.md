@@ -2,6 +2,8 @@
 
 An implementation of [TodoMVC](https://www.todomvc.com/) using [WebSharper UI.Next](https://intellifactory.github.io/websharper.ui.next).
 
+See it running live [here.](http://websharper-samples.github.io/TodoMVC/)
+
 # TODO
 
 The implementation does not fully conform to the [TodoMVC app specification](https://github.com/tastejs/todomvc/blob/master/app-spec.md):
